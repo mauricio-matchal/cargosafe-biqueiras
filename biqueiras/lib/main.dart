@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 void main() {
   runApp(const MyApp());
@@ -12,23 +13,14 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
+      color: Colors.blue,
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        fontFamily: 'Inter', // ← Must match 'family' in pubspec.yaml
+
+        textTheme: TextTheme(
+          bodyMedium: TextStyle(fontSize: 16),
+          // Default text style
+        ),
       ),
       home: const MyHomePage(title: 'Flutter Demo Home Page'),
     );
@@ -54,19 +46,6 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -76,47 +55,264 @@ class _MyHomePageState extends State<MyHomePage> {
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
     return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+      backgroundColor: Color.fromRGBO(243, 243, 243, 1),
+      body: Stack(
+        children: [
+          Positioned(
+            top: -200,
+            right: -0,
+            child: Container(
+              width: 500,
+              height: 500,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Color.fromRGBO(57, 73, 106, 0.4),
+                    blurRadius: 200,
+                    spreadRadius: 50,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(18.0, 12.0, 18.0, 24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Center(
+                  child: Text(
+                    'Primeiros passos',
+                    textWidthBasis: TextWidthBasis.parent,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16.0,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+                SizedBox(height: 36.0),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 6.0),
+                    child: Column(
+                      children: [
+                        Text(
+                          "Ative o Bluetooth",
+                          style: TextStyle(
+                            letterSpacing: -0.2,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 24.0,
+                            color: Color.fromRGBO(21, 42, 86, 1),
+                          ),
+                        ),
+                        SizedBox(height: 48.0),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          child: Column(
+                            spacing: 32.0,
+                            children: [
+                              Row(
+                                spacing: 16.0,
+                                children: [
+                                  Text(
+                                    "1.",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 28,
+                                      wordSpacing: 28,
+                                      color: Color.fromRGBO(21, 42, 86, 1),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: RichText(
+                                      text: TextSpan(
+                                        style: TextStyle(
+                                          height: 1.2,
+                                          color: Colors.black,
+                                          fontSize: 16,
+                                          fontFamily: "Inter",
+                                        ), // Default style
+                                        children: [
+                                          TextSpan(
+                                            text: "Certifique-se de que as ",
+                                          ),
+                                          TextSpan(
+                                            text: "Biqueiras CargoSafe",
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.w600,
+                                            ), // Medium weight
+                                          ),
+                                          TextSpan(text: " estejam ligadas."),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              Row(
+                                spacing: 16.0,
+                                children: [
+                                  Text(
+                                    "2.",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 28,
+                                      wordSpacing: 28,
+                                      color: Color.fromRGBO(21, 42, 86, 1),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: Text(
+                                      "Ative o Bluetooth do seu celular.",
+                                      style: TextStyle(height: 1.2),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              Row(
+                                spacing: 16.0,
+                                children: [
+                                  Text(
+                                    "3.",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 28,
+                                      wordSpacing: 28,
+                                      color: Color.fromRGBO(21, 42, 86, 1),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: RichText(
+                                      text: TextSpan(
+                                        style: TextStyle(
+                                          height: 1.2,
+                                          color: Colors.black,
+                                          fontSize: 16,
+                                          fontFamily: "Inter",
+                                        ),
+                                        children: [
+                                          TextSpan(
+                                            text:
+                                                "Conecte-se ao dispositivo com o nome ",
+                                          ),
+                                          TextSpan(
+                                            text: "\"Nome do dispositivo\"",
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.w600,
+                                            ), // Medium weight
+                                          ),
+                                          TextSpan(text: "."),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        SizedBox(height: 56.0),
+                        Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(16),
+                            color: Colors.white,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Color.fromRGBO(0, 0, 0, 0.04),
+                                blurRadius: 12.0,
+                                offset: Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(
+                              16.0,
+                              14.0,
+                              16.0,
+                              14.0,
+                            ),
+                            child: Row(
+                              spacing: 20,
+                              children: [
+                                CircularProgressIndicator(
+                                  color: Color.fromRGBO(13, 186, 26, 1),
+                                ),
+                                Expanded(
+                                  child: Text(
+                                    "Verificando conexão com Biqueiras CargoSafe...",
+                                    style: TextStyle(
+                                      fontSize: 14.0,
+                                      height: 1.2,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                Button(),
+              ],
+            ),
+          ),
+        ],
       ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+    );
+  }
+}
+
+class Button extends StatelessWidget {
+  const Button({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 6.0),
+      child: Container(
+        decoration: BoxDecoration(
+          boxShadow: [
+            BoxShadow(
+              offset: Offset(0, 4),
+              blurRadius: 12,
+              color: Color.fromRGBO(0, 0, 0, .08),
             ),
           ],
         ),
+        child: SizedBox(
+          width: double.infinity,
+          child: TextButton(
+            style: ButtonStyle(
+              foregroundColor: WidgetStateProperty.all<Color>(Colors.white),
+              backgroundColor: WidgetStateProperty.all<Color>(
+                Color.fromRGBO(13, 186, 26, 1),
+              ),
+              padding: WidgetStateProperty.all<EdgeInsetsGeometry>(
+                EdgeInsets.symmetric(vertical: 16), // Even padding
+              ),
+              shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+                RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14), // Rounded corners
+                ),
+              ),
+            ),
+            onPressed: () {},
+            child: Text(
+              "Começar",
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                height: 1.2,
+              ),
+            ),
+          ),
+        ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
