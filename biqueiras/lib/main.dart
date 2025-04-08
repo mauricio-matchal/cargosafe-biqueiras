@@ -1,5 +1,5 @@
+import 'package:biqueiras/ui/biqueiras_page.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 void main() {
   runApp(const MyApp());
@@ -30,15 +30,6 @@ class MyApp extends StatelessWidget {
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
 
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
   final String title;
 
   @override
@@ -46,31 +37,54 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  ButtonStatus _status = ButtonStatus.unavailable;
+  bool foundDevice = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkBluetoothDevice();
+  }
+
+  Future<void> _checkBluetoothDevice() async {
+    // Simulate checking for Bluetooth device after a delay
+    await Future.delayed(Duration(seconds: 3));
+
+    // Here you should integrate your Bluetooth logic using flutter_blue or similar
+    // For now, we simulate finding the device:
+    foundDevice = true;
+
+    if (foundDevice) {
+      setState(() {
+        _status = ButtonStatus.active;
+      });
+    } else {
+      setState(() {
+        _status = ButtonStatus.unavailable;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
       backgroundColor: Color.fromRGBO(243, 243, 243, 1),
       body: Stack(
         children: [
           Positioned(
             top: -200,
-            right: -0,
+            right: -30,
             child: Container(
               width: 500,
-              height: 500,
+              height: 400,
               decoration: BoxDecoration(
-                shape: BoxShape.circle,
+                shape: BoxShape.rectangle,
+                borderRadius: BorderRadius.circular(250),
                 boxShadow: [
                   BoxShadow(
                     color: Color.fromRGBO(57, 73, 106, 0.4),
-                    blurRadius: 200,
-                    spreadRadius: 50,
+                    blurRadius: 400,
+                    spreadRadius: 100,
                   ),
                 ],
               ),
@@ -257,7 +271,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                   ),
                 ),
-                Button(),
+                Button(status: _status),
               ],
             ),
           ),
@@ -267,47 +281,87 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
+enum ButtonStatus { active, available, unavailable }
+
 class Button extends StatelessWidget {
-  const Button({super.key});
+  final ButtonStatus status;
+
+  const Button({super.key, required this.status});
 
   @override
   Widget build(BuildContext context) {
+    // Determine background color based on status
+    Color backgroundColor;
+    Color foregroundColor;
+    bool isDisabled = false;
+
+    switch (status) {
+      case ButtonStatus.active:
+        backgroundColor = Color(0xFF0DBA1A);
+        foregroundColor = Color.fromRGBO(255, 255, 255, 1); // green
+        break;
+      case ButtonStatus.available:
+        backgroundColor = Colors.white;
+        foregroundColor = Color.fromRGBO(0, 0, 0, 1);
+        break;
+      case ButtonStatus.unavailable:
+        backgroundColor = Colors.white;
+        foregroundColor = Color.fromRGBO(0, 0, 0, 1);
+        isDisabled = true;
+        break;
+    }
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 6.0),
-      child: Container(
-        decoration: BoxDecoration(
-          boxShadow: [
-            BoxShadow(
-              offset: Offset(0, 4),
-              blurRadius: 12,
-              color: Color.fromRGBO(0, 0, 0, .08),
-            ),
-          ],
-        ),
-        child: SizedBox(
-          width: double.infinity,
-          child: TextButton(
-            style: ButtonStyle(
-              foregroundColor: WidgetStateProperty.all<Color>(Colors.white),
-              backgroundColor: WidgetStateProperty.all<Color>(
-                Color.fromRGBO(13, 186, 26, 1),
+      child: Opacity(
+        opacity: isDisabled ? 0.4 : 1.0,
+        child: Container(
+          decoration: BoxDecoration(
+            boxShadow: [
+              BoxShadow(
+                offset: Offset(0, 4),
+                blurRadius: 12,
+                color: Color.fromRGBO(0, 0, 0, .14),
               ),
-              padding: WidgetStateProperty.all<EdgeInsetsGeometry>(
-                EdgeInsets.symmetric(vertical: 16), // Even padding
-              ),
-              shape: WidgetStateProperty.all<RoundedRectangleBorder>(
-                RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14), // Rounded corners
+            ],
+          ),
+          child: SizedBox(
+            width: double.infinity,
+            height: 50.0,
+            child: TextButton(
+              onPressed:
+                  isDisabled
+                      ? null
+                      : () async {
+                        final saved = await Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const BiqueirasPage(initialPageStatus: PageStatus.normal,),
+                          ),
+                        );
+                      },
+              style: ButtonStyle(
+                foregroundColor: WidgetStateProperty.all<Color>(
+                  foregroundColor,
+                ),
+                backgroundColor: WidgetStateProperty.all<Color>(
+                  backgroundColor,
+                ),
+                padding: WidgetStateProperty.all<EdgeInsetsGeometry>(
+                  EdgeInsets.symmetric(vertical: 16),
+                ),
+                shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+                  RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
                 ),
               ),
-            ),
-            onPressed: () {},
-            child: Text(
-              "Começar",
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                height: 1.2,
+              child: Text(
+                "Começar",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  height: 1.2,
+                ),
               ),
             ),
           ),
