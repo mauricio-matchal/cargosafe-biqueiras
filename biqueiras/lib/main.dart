@@ -251,9 +251,12 @@ class _MyHomePageState extends State<MyHomePage> {
                             child: Row(
                               spacing: 20,
                               children: [
-                                CircularProgressIndicator(
-                                  color: Color.fromRGBO(13, 186, 26, 1),
-                                ),
+                                !foundDevice
+                                  ? CircularProgressIndicator(
+                                      color: Color.fromRGBO(13, 186, 26, 1),
+                                    )
+                                  : Icon(Icons.check, color: Color.fromRGBO(13, 186, 26, 1),),
+                                
                                 Expanded(
                                   child: Text(
                                     "Verificando conexão com Biqueiras CargoSafe...",

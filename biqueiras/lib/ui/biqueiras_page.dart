@@ -17,6 +17,8 @@ class BiqueirasPage extends StatefulWidget {
 }
 
 class _BiqueirasPageState extends State<BiqueirasPage> {
+  bool isGrid = true;
+
   final _scrollController = ScrollController();
   final _gridViewKey = GlobalKey();
 
@@ -144,27 +146,52 @@ class _BiqueirasPageState extends State<BiqueirasPage> {
                         ),
                       ),
                       SizedBox(height: 32.0),
+                      IconButton(
+                        icon: Icon(isGrid ? Icons.list : Icons.grid_view),
+                        onPressed: () {
+                          setState(() {
+                            isGrid = !isGrid;
+                          });
+                        },
+                      ),
+                      SizedBox(height: 8.0,),
                       Expanded(
-                        child: ReorderableBuilder(
-                          scrollController: _scrollController,
-                          onReorder: _onReorder,
-                          children: cardWidgets,
-                          builder: (children) {
-                            return GridView(
-                              key: _gridViewKey,
-                              controller: _scrollController,
-                              physics: const AlwaysScrollableScrollPhysics(),
-                              gridDelegate:
-                                  SliverGridDelegateWithFixedCrossAxisCount(
-                                    crossAxisCount: 2,
-                                    crossAxisSpacing: 6,
-                                    mainAxisSpacing: 6,
-                                    mainAxisExtent: 60,
-                                  ),
-                              children: children,
-                            );
-                          },
-                        ),
+                        child: 
+                          isGrid ?
+                            ReorderableBuilder(
+                              scrollController: _scrollController,
+                              onReorder: _onReorder,
+                              children: cardWidgets,
+                              builder: (children) {
+                                return GridView(
+                                  key: _gridViewKey,
+                                  controller: _scrollController,
+                                  physics: const AlwaysScrollableScrollPhysics(),
+                                  gridDelegate:
+                                      SliverGridDelegateWithFixedCrossAxisCount(
+                                        crossAxisCount: 2,
+                                        crossAxisSpacing: 6,
+                                        mainAxisSpacing: 6,
+                                        mainAxisExtent: 60,
+                                      ),
+                                  children: children,
+                                );
+                              },
+                            ) :
+                            ReorderableListView(
+                              
+                              onReorder: (int oldIndex, int newIndex) {
+                                setState(() {
+                                  if (oldIndex < newIndex) {
+                                    newIndex -= 1;
+                                  }
+                                  final CardStatus item = cardStatuses.removeAt(oldIndex);
+                                  cardStatuses.insert(newIndex, item);
+                                });
+                              },
+                              padding: EdgeInsets.fromLTRB(0, 0, 0, 6.0),
+                              children: cardWidgets,
+                            )
                       ),
                     ],
                   ),
@@ -302,7 +329,7 @@ class BiqueiraCard extends StatelessWidget {
                       height: 1.16,
                       fontWeight:
                           cardStatus == CardStatus.violado
-                              ? FontWeight.w600
+                              ? FontWeight.w700
                               : FontWeight.w500,
                       color: statusColor,
                     ),
