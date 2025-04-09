@@ -1,6 +1,8 @@
 import 'package:biqueiras/ui/biqueiras_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:permission_handler/permission_handler.dart';
+
 
 void main() {
   runApp(const MyApp());
@@ -45,7 +47,15 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    _checkBluetoothDevice();
+    _requestPermissions().then((_) => _checkBluetoothDevice());
+  }
+
+  Future<void> _requestPermissions() async {
+    await [
+      Permission.bluetoothScan,
+      Permission.bluetoothConnect,
+      Permission.location,
+    ].request();
   }
 
   Future<void> _checkBluetoothDevice() async {
