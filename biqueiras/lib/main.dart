@@ -1,5 +1,6 @@
 import 'package:biqueiras/ui/biqueiras_page.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
 void main() {
   runApp(const MyApp());
@@ -39,6 +40,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   ButtonStatus _status = ButtonStatus.unavailable;
   bool foundDevice = false;
+  bool turnedOn = false;
 
   @override
   void initState() {
@@ -47,19 +49,54 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> _checkBluetoothDevice() async {
-    // Simulate checking for Bluetooth device after a delay
-    await Future.delayed(Duration(seconds: 3));
+    try {
+      // Verifica se o Bluetooth está ligado
+      BluetoothAdapterState adapterState = await FlutterBluePlus.adapterState.first;
+      if (adapterState != BluetoothAdapterState.on) {
+        setState(() {
+          _status = ButtonStatus.unavailable;
+        });
+        return;
+      } else if(adapterState == BluetoothAdapterState.on) {
+        setState(() {
+          turnedOn = true;
+        });
+      }
 
-    // Here you should integrate your Bluetooth logic using flutter_blue or similar
-    // For now, we simulate finding the device:
-    foundDevice = true;
 
-    if (foundDevice) {
-      setState(() {
-        _status = ButtonStatus.active;
+      // Começa a escanear
+      await FlutterBluePlus.startScan(timeout: Duration(seconds: 5));
+
+      // Nome do dispositivo que você quer detectar
+      const nomeDoDispositivo = "Biqueiras CargoSafe";
+
+      bool dispositivoEncontrado = false;
+
+      // Escuta os resultados do scan
+      FlutterBluePlus.scanResults.listen((results) {
+        for (ScanResult result in results) {
+          if (result.device.name == nomeDoDispositivo) {
+            dispositivoEncontrado = true;
+            FlutterBluePlus.stopScan(); // para o scan assim que encontrar
+            setState(() {
+              foundDevice = true;
+              _status = ButtonStatus.active;
+            });
+            break;
+          }
+        }
+
+        if (!dispositivoEncontrado) {
+          setState(() {
+            foundDevice = false;
+            _status = ButtonStatus.unavailable;
+          });
+        }
       });
-    } else {
+    } catch (e) {
+      print("Erro ao verificar o dispositivo: $e");
       setState(() {
+        foundDevice = false;
         _status = ButtonStatus.unavailable;
       });
     }
@@ -123,6 +160,9 @@ class _MyHomePageState extends State<MyHomePage> {
                             color: Color.fromRGBO(21, 42, 86, 1),
                           ),
                         ),
+                        !turnedOn
+                          ? Text("Bluetooth desligado")
+                          : Text("Bluetooth ligado"),
                         SizedBox(height: 48.0),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16.0),

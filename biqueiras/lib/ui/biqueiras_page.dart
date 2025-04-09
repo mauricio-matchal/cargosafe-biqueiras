@@ -1,14 +1,21 @@
+import 'dart:math';
+
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_reorderable_grid_view/widgets/widgets.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:biqueiras/components/ViewSwitcher.dart';
+import 'package:reorderables/reorderables.dart';
 
 enum PageStatus { normal, violada, descarregar }
-
 enum CardStatus { normal, violado, desligado }
-
 enum ButtonStatus { active, available, unavailable }
+class CardData {
+  final int numero; // número fixo do card (1, 2, 3...)
+  CardStatus status;
+
+  CardData({required this.numero, required this.status});
+}
 
 class BiqueirasPage extends StatefulWidget {
   final PageStatus initialPageStatus;
@@ -21,21 +28,13 @@ class BiqueirasPage extends StatefulWidget {
 
 class _BiqueirasPageState extends State<BiqueirasPage> {
   bool _isGridView = true;
-
-  final _scrollController = ScrollController();
-  final _gridViewKey = GlobalKey();
-
   late PageStatus _pageStatus;
-  List<CardStatus> cardStatuses = [
-    CardStatus.normal,
-    CardStatus.normal,
-    CardStatus.normal,
-    CardStatus.normal,
-    CardStatus.normal,
-    CardStatus.normal,
-    CardStatus.normal,
-    CardStatus.normal,
-  ];
+
+  List<CardData> cards = List.generate(
+    8,
+    (index) => CardData(numero: index + 1, status: CardStatus.normal),
+  );
+
 
   @override
   void initState() {
@@ -44,14 +43,8 @@ class _BiqueirasPageState extends State<BiqueirasPage> {
     _checkPageStatus();
   }
 
-  void _onReorder(ReorderedListFunction reorderedListFunction) {
-    setState(() {
-      cardStatuses = reorderedListFunction(cardStatuses) as List<CardStatus>;
-    });
-  }
-
   void _checkPageStatus() {
-    final hasViolado = cardStatuses.contains(CardStatus.violado);
+    final hasViolado = cards.any((card) => card.status == CardStatus.violado);
     setState(() {
       _pageStatus = hasViolado ? PageStatus.violada : PageStatus.normal;
     });
@@ -59,7 +52,7 @@ class _BiqueirasPageState extends State<BiqueirasPage> {
 
   void _updateCardStatus(int index, CardStatus newStatus) {
     setState(() {
-      cardStatuses[index] = newStatus;
+      cards[index].status = newStatus;
       _checkPageStatus();
     });
   }
@@ -67,8 +60,8 @@ class _BiqueirasPageState extends State<BiqueirasPage> {
   void _descarregarBiqueiras() {
     setState(() {
       // Set all cards to desligado
-      for (int i = 0; i < cardStatuses.length; i++) {
-        cardStatuses[i] = CardStatus.desligado;
+      for (int i = 0; i < cards.length; i++) {
+        cards[i].status = CardStatus.desligado;
       }
       _pageStatus = PageStatus.descarregar;
     });
@@ -77,8 +70,8 @@ class _BiqueirasPageState extends State<BiqueirasPage> {
   void _reativarBiqueiras() {
     setState(() {
       // Set all cards to desligado
-      for (int i = 0; i < cardStatuses.length; i++) {
-        cardStatuses[i] = CardStatus.normal;
+      for (int i = 0; i < cards.length; i++) {
+        cards[i].status = CardStatus.normal;
       }
       _pageStatus = PageStatus.normal;
     });
@@ -86,17 +79,40 @@ class _BiqueirasPageState extends State<BiqueirasPage> {
 
   @override
   Widget build(BuildContext context) {
-    final cardWidgets = List.generate(
-      cardStatuses.length,
-      (index) => BiqueiraCard(
-        key: Key('card_$index'), // Unique key for each card
-        index: index + 1,
-        cardStatus: cardStatuses[index],
-        onStatusChanged: (newStatus) {
-          _updateCardStatus(index, newStatus);
-        },
+    final cardWidgetsGrid = List.generate(
+      cards.length,
+      (index) => SizedBox(
+        width: (MediaQuery.of(context).size.width - 42) / 2,
+        child: BiqueiraCard(
+          key: ValueKey(cards[index].numero),
+          cardStatus: cards[index].status,
+          index: cards[index].numero,
+          onStatusChanged: (newStatus) {
+            _updateCardStatus(index, newStatus);
+          },
+        ),
       ),
     );
+    final cardWidgetsList = List.generate(
+      cards.length,
+      (index) => SizedBox(
+        child: BiqueiraCard(
+          key: ValueKey(cards[index].numero),
+          cardStatus: cards[index].status,
+          index: cards[index].numero,
+          onStatusChanged: (newStatus) {
+            _updateCardStatus(index, newStatus);
+          },
+        ),
+      ),
+    );
+
+    void _onReorder(int oldIndex, int newIndex) {
+      setState(() {
+        final item = cards.removeAt(oldIndex);
+        cards.insert(newIndex, item);
+      });
+    }
 
     return Scaffold(
       backgroundColor: Color.fromRGBO(243, 243, 243, 1),
@@ -174,48 +190,22 @@ class _BiqueirasPageState extends State<BiqueirasPage> {
                           },
                         ),
                       ),
-                      Expanded( // This will take all remaining space
+                      Expanded(
                         child: _isGridView
-                          ? ReorderableBuilder(
-                              scrollController: _scrollController,
+                          ? ReorderableWrap(
+                              spacing: 6.0,
+                              runSpacing: 6.0,
+                              needsLongPressDraggable: false,
                               onReorder: _onReorder,
-                              children: cardWidgets,
-                              builder: (children) {
-                                return GridView(
-                                  key: _gridViewKey,
-                                  controller: _scrollController,
-                                  physics: AlwaysScrollableScrollPhysics(),
-                                  padding: EdgeInsets.only(top: 8), // Small top padding only for grid
-                                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                                    crossAxisCount: 2,
-                                    crossAxisSpacing: 6,
-                                    mainAxisSpacing: 6,
-                                    mainAxisExtent: 60,
-                                  ),
-                                  children: children,
-                                );
-                              },
+                              children: cardWidgetsGrid,
                             )
-                          : ReorderableListView(
-                              onReorder: (int oldIndex, int newIndex) {
-                                setState(() {
-                                  if (oldIndex < newIndex) {
-                                    newIndex -= 1;
-                                  }
-                                  final CardStatus item = cardStatuses.removeAt(oldIndex);
-                                  cardStatuses.insert(newIndex, item);
-                                });
-                              },
-                              padding: EdgeInsets.only(top: 8, bottom: 6), // Consistent top padding
-                              children: [
-                                for (var i = 0; i < cardWidgets.length; i++)
-                                  Padding(
-                                    padding: EdgeInsets.only(bottom: i < cardWidgets.length - 1 ? 6.0 : 0),
-                                    key: ValueKey(cardWidgets[i]),
-                                    child: cardWidgets[i],
-                                  ),
-                              ],
-                            ),
+                          : ReorderableWrap(
+                              spacing: 6.0,
+                              runSpacing: 6.0,
+                              needsLongPressDraggable: false,
+                              onReorder: _onReorder,
+                              children: cardWidgetsList,
+                            )
                       ),
                     ],
                   ),
@@ -273,7 +263,7 @@ class _BiqueirasPageState extends State<BiqueirasPage> {
                         ),
                       ),
                     ),
-                    SizedBox(height: 16,),
+                    SizedBox(height: 6,),
                   ],
                 ),
               ],
@@ -290,13 +280,13 @@ class _BiqueirasPageState extends State<BiqueirasPage> {
 class BiqueiraCard extends StatelessWidget {
   final CardStatus cardStatus;
   final Function(CardStatus)? onStatusChanged;
-  final int index;
+  final int? index;
 
   const BiqueiraCard({
     super.key,
     required this.cardStatus,
     this.onStatusChanged,
-    required this.index,
+    this.index,
   });
 
   @override
