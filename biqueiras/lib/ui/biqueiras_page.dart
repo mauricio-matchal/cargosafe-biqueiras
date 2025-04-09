@@ -1,5 +1,8 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_reorderable_grid_view/widgets/widgets.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:biqueiras/components/ViewSwitcher.dart';
 
 enum PageStatus { normal, violada, descarregar }
 
@@ -17,7 +20,7 @@ class BiqueirasPage extends StatefulWidget {
 }
 
 class _BiqueirasPageState extends State<BiqueirasPage> {
-  bool isGrid = true;
+  bool _isGridView = true;
 
   final _scrollController = ScrollController();
   final _gridViewKey = GlobalKey();
@@ -116,7 +119,7 @@ class _BiqueirasPageState extends State<BiqueirasPage> {
                             : _pageStatus == PageStatus.descarregar
                             ? Color.fromRGBO(57, 73, 106, 0.4)
                             : Color.fromRGBO(13, 186, 26, 1),
-                    blurRadius: 400,
+                    blurRadius: 100,
                     spreadRadius: 100,
                   ),
                 ],
@@ -131,7 +134,7 @@ class _BiqueirasPageState extends State<BiqueirasPage> {
                 SizedBox(height: 36.0),
                 Expanded(
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Align(
                         alignment: Alignment.centerLeft,
@@ -145,20 +148,35 @@ class _BiqueirasPageState extends State<BiqueirasPage> {
                           ),
                         ),
                       ),
+
+                      _pageStatus == PageStatus.violada
+                      ? Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SizedBox(height: 16.0),
+                            Text(
+                              "Para sua segurança, recomendamos que você entre em contato com a força policial mais próxima e a transportadora.",
+                              style: TextStyle(fontSize: 14.0, color: Colors.white, height: 1.2),
+                            ),
+                          ],
+                        )
+                      : SizedBox.shrink(),
+
                       SizedBox(height: 32.0),
-                      IconButton(
-                        icon: Icon(isGrid ? Icons.list : Icons.grid_view),
-                        onPressed: () {
-                          setState(() {
-                            isGrid = !isGrid;
-                          });
-                        },
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(0, 0, 0, 8),
+                        child: ViewSwitcher(
+                          isGridView: _isGridView,
+                          onToggle: (bool value) {
+                            setState(() {
+                              _isGridView = value;
+                            });
+                          },
+                        ),
                       ),
-                      SizedBox(height: 8.0,),
-                      Expanded(
-                        child: 
-                          isGrid ?
-                            ReorderableBuilder(
+                      Expanded( // This will take all remaining space
+                        child: _isGridView
+                          ? ReorderableBuilder(
                               scrollController: _scrollController,
                               onReorder: _onReorder,
                               children: cardWidgets,
@@ -166,20 +184,19 @@ class _BiqueirasPageState extends State<BiqueirasPage> {
                                 return GridView(
                                   key: _gridViewKey,
                                   controller: _scrollController,
-                                  physics: const AlwaysScrollableScrollPhysics(),
-                                  gridDelegate:
-                                      SliverGridDelegateWithFixedCrossAxisCount(
-                                        crossAxisCount: 2,
-                                        crossAxisSpacing: 6,
-                                        mainAxisSpacing: 6,
-                                        mainAxisExtent: 60,
-                                      ),
+                                  physics: AlwaysScrollableScrollPhysics(),
+                                  padding: EdgeInsets.only(top: 8), // Small top padding only for grid
+                                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: 2,
+                                    crossAxisSpacing: 6,
+                                    mainAxisSpacing: 6,
+                                    mainAxisExtent: 60,
+                                  ),
                                   children: children,
                                 );
                               },
-                            ) :
-                            ReorderableListView(
-                              
+                            )
+                          : ReorderableListView(
                               onReorder: (int oldIndex, int newIndex) {
                                 setState(() {
                                   if (oldIndex < newIndex) {
@@ -189,26 +206,75 @@ class _BiqueirasPageState extends State<BiqueirasPage> {
                                   cardStatuses.insert(newIndex, item);
                                 });
                               },
-                              padding: EdgeInsets.fromLTRB(0, 0, 0, 6.0),
-                              children: cardWidgets,
-                            )
+                              padding: EdgeInsets.only(top: 8, bottom: 6), // Consistent top padding
+                              children: [
+                                for (var i = 0; i < cardWidgets.length; i++)
+                                  Padding(
+                                    padding: EdgeInsets.only(bottom: i < cardWidgets.length - 1 ? 6.0 : 0),
+                                    key: ValueKey(cardWidgets[i]),
+                                    child: cardWidgets[i],
+                                  ),
+                              ],
+                            ),
                       ),
                     ],
                   ),
                 ),
-                Button(
-                  buttonStatus:
-                      _pageStatus == PageStatus.violada
-                          ? ButtonStatus.unavailable
-                          : _pageStatus == PageStatus.descarregar
-                          ? ButtonStatus.active
-                          : ButtonStatus.available,
-                  onPressed:
-                      _pageStatus == PageStatus.normal
-                          ? _descarregarBiqueiras
-                          : _pageStatus == PageStatus.descarregar
-                          ? _reativarBiqueiras
-                          : null,
+                Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(0, 8.0, 0, 0),
+                      child: Button(
+                        buttonStatus:
+                            _pageStatus == PageStatus.violada
+                                ? ButtonStatus.unavailable
+                                : _pageStatus == PageStatus.descarregar
+                                ? ButtonStatus.active
+                                : ButtonStatus.available,
+                        onPressed:
+                            _pageStatus == PageStatus.normal
+                                ? _descarregarBiqueiras
+                                : _pageStatus == PageStatus.descarregar
+                                ? _reativarBiqueiras
+                                : null,
+                      ),
+                    ),
+                    SizedBox(height: 16,),
+                    SizedBox(
+                      height: 45.0,
+                      child: Text.rich(
+                        TextSpan(
+                          text: '',
+                          children: [
+                            if (_pageStatus == PageStatus.normal) ...[
+                              TextSpan(text: 'Essa ação '),
+                              TextSpan(
+                                text: 'desabilita o sistema de fraude',
+                                style: TextStyle(fontWeight: FontWeight.w700),
+                              ),
+                              TextSpan(text: ' sendo apenas recomendada caso as biqueiras precisem ser abertas em uma situação de segurança.'),
+                            ] else if (_pageStatus == PageStatus.violada) ...[
+                              TextSpan(text: 'Essa ação não está disponível porque há uma biqueira violada. '),
+                            ] else ...[
+                              TextSpan(text: 'Essa ação '),
+                              TextSpan(
+                                text: 'reativa o sistema de fraude',
+                                style: TextStyle(fontWeight: FontWeight.w700),
+                              ),
+                              TextSpan(text: ' após o descarregamento ter sido finalizado.'),
+                            ]
+                          ],
+                        ),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 12.0,
+                          height: 1.2,
+                          color: Color.fromRGBO(1, 1, 1, .4),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 16,),
+                  ],
                 ),
               ],
             ),
@@ -218,6 +284,8 @@ class _BiqueirasPageState extends State<BiqueirasPage> {
     );
   }
 }
+
+////////////// Cards
 
 class BiqueiraCard extends StatelessWidget {
   final CardStatus cardStatus;
@@ -275,8 +343,16 @@ class BiqueiraCard extends StatelessWidget {
       },
       child: Container(
         decoration: BoxDecoration(
+          border: Border.all(color: Color.fromRGBO(1, 1, 1, .08), width: 1), 
           color: backgroundColor,
           borderRadius: BorderRadius.circular(14.0),
+          boxShadow: [
+            BoxShadow(
+              offset: Offset(0, 4),
+              blurRadius: 12,
+              color: Color.fromRGBO(0, 0, 0, .08),
+            ),
+          ],
         ),
         child: Padding(
           padding: const EdgeInsets.all(8.0),
@@ -288,24 +364,34 @@ class BiqueiraCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: cardColor,
                   borderRadius: BorderRadius.circular(8.0),
-                  boxShadow: [
-                    BoxShadow(
-                      offset: Offset(0, 4),
-                      blurRadius: 12,
-                      color: Color.fromRGBO(0, 0, 0, .08),
+                ),
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Center(
+                      child: Text(
+                        index.toString(),
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20.0,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ),
+                    cardStatus == CardStatus.violado 
+                    ? Positioned(
+                        bottom: 0,
+                        left: 30, // ajusta conforme necessário
+                        child: SvgPicture.asset(
+                          'assets/icons/warning.svg',
+                          height: 20,
+                          width: 22.33,
+                        ),
+                      )
+                    : SizedBox.shrink(),
                   ],
                 ),
-                child: Center(
-                  child: Text(
-                    index.toString(),
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20.0,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
+
               ),
               SizedBox(width: 12),
               Column(
@@ -318,14 +404,20 @@ class BiqueiraCard extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 14.0,
                       height: 1,
-                      fontWeight: FontWeight.w500,
+                      fontWeight: 
+                        cardStatus == CardStatus.violado
+                              ? FontWeight.w700
+                              : FontWeight.w500,
                       color: titleColor,
                     ),
                   ),
                   Text(
                     statusText,
                     style: TextStyle(
-                      fontSize: 12.0,
+                      fontSize:
+                        cardStatus == CardStatus.violado
+                              ? 14
+                              : 12,
                       height: 1.16,
                       fontWeight:
                           cardStatus == CardStatus.violado
@@ -343,6 +435,8 @@ class BiqueiraCard extends StatelessWidget {
     );
   }
 }
+
+////////////// Botões
 
 class Button extends StatelessWidget {
   final ButtonStatus buttonStatus;
@@ -371,7 +465,7 @@ class Button extends StatelessWidget {
       case ButtonStatus.unavailable:
         backgroundColor = Colors.white;
         foregroundColor = Color.fromRGBO(0, 0, 0, 1);
-        buttonText = "Indisponível";
+        buttonText = "Descarregar";
         isDisabled = true;
         break;
     }
@@ -415,7 +509,10 @@ class Button extends StatelessWidget {
                 buttonText,
                 style: TextStyle(
                   fontSize: 16,
-                  fontWeight: FontWeight.w600,
+                  fontWeight:
+                  buttonStatus == ButtonStatus.active
+                    ? FontWeight.w600 
+                    : FontWeight.w500,
                   height: 1.2,
                 ),
               ),

@@ -83,7 +83,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 boxShadow: [
                   BoxShadow(
                     color: Color.fromRGBO(57, 73, 106, 0.4),
-                    blurRadius: 400,
+                    blurRadius: 100,
                     spreadRadius: 100,
                   ),
                 ],
@@ -91,10 +91,11 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(18.0, 12.0, 18.0, 24.0),
+            padding: const EdgeInsets.fromLTRB(18.0, 32.0, 18.0, 24.0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
+                SizedBox(height: 18,),
                 Center(
                   child: Text(
                     'Primeiros passos',
